@@ -18,7 +18,7 @@ class BertForMultiChoiceNSP(BertForNextSentencePrediction):
         super().__init__(config)
         
         self.loss_fct = torch.nn.BCEWithLogitsLoss() # seems to be default loss function for NSP
-        self.softmax = torch.nn.Softmax(dim=0)
+        self.softmax = torch.nn.Softmax(dim=1)
         self.tokenizer = BertTokenizer.from_pretrained(BASE_MODEL)
 
     def forward(self, input_ids, token_type_ids = None, labels=None, attention_mask=None, verbose=False):
@@ -27,24 +27,22 @@ class BertForMultiChoiceNSP(BertForNextSentencePrediction):
         output = super().forward(input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask, labels=labels)
         loss = output[0]
         logits = output[1]        
-                
-        predictions = list()
+        
+        # Model predicts sentence-pair as correct if True-logit > False-logit
+        predictions = (logits.argmax(dim=1) == 0).int()
+        probs = self.softmax(logits).cpu().detach()
+        
         # iterate over elements in batch
         for i, element_input_ids in enumerate(input_ids):
-
-            # Model predicts sentence-pair as correct if True-logit > False-logit
-            predictions.append(int(logits[i][0] > logits[i][1]))
             
             # Extra info print() if verbose
             if verbose:
-                prob = self.softmax(logits[i])
-                prob = prob.cpu().detach().numpy()
                 print(self.tokenizer.decode(element_input_ids))
-                print("Probability:", prob[0]*100)
+                print("Probability:", probs[i][0].item() * 100)
                 print("Predicted: ", bool(predictions[i]))
                 print("True label: ", bool(labels[i]))
              
-        return loss, predictions
+        return loss, predictions.tolist()
 
 
 class ClozeTest(torch.utils.data.Dataset):
@@ -118,7 +116,7 @@ def test(verbose = False):
         attention_mask = tokenized_batch['attention_mask'] #0 if [PAD] token, 1 otherwise
         
         #Send to GPU
-        labels.to(device)
+        labels = labels.to(device)
 
         loss, predictions = model(input_ids, token_type_ids = token_type_ids, attention_mask=attention_mask, labels = labels, verbose=verbose)
 
