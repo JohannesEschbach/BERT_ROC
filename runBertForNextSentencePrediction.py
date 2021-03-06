@@ -12,6 +12,9 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 # underlying pretrained LM
 BASE_MODEL = 'bert-large-uncased-whole-word-masking'
 
+BATCH_SIZE = 5
+WARMUP_EPOCHS = 1
+TRAIN_EPOCHS = 10
 
 class BertForMultiChoiceNSP(BertForNextSentencePrediction):
     def __init__(self, config):
@@ -57,6 +60,12 @@ class ClozeTest(torch.utils.data.Dataset):
                 for line in reader:
                     dataset.append(line)                
 
+        else:
+            with open('cloze_train.csv', 'r', encoding='utf-8') as d:
+                reader = csv.reader(d, quotechar='"', delimiter=',' , quoting=csv.QUOTE_ALL, skipinitialspace=True)                
+                for line in reader:
+                    dataset.append(line)  
+
         self.data = []
         self.labels = []
 
@@ -89,10 +98,55 @@ class ClozeTest(torch.utils.data.Dataset):
         return len(self.labels)
 
 
-
-def test(verbose = False):
+#No idea if it works properly. Mostly copy-paste. My GPU is too small to try it
+def train(model_file=BASE_MODEL, verbose = False, evaluate = False, batch_size=BATCH_SIZE, warmup_epochs=WARMUP_EPOCHS, train_epochs=TRAIN_EPOCHS):
     tokenizer = BertTokenizer.from_pretrained(BASE_MODEL)
-    model = BertForMultiChoiceNSP.from_pretrained(BASE_MODEL)
+    model = BertForNSP.from_pretrained(model_file)
+
+    #Send to GPU and allow Training
+    model = model.to(device)
+    model.train()
+
+    trainloader = torch.utils.data.DataLoader(ClozeTest(dev=False), batch_size=BATCH_SIZE, shuffle=True)
+
+    #LR maybe needs to be optimized
+    optimizer = AdamW(model.parameters(), lr=1e-5)
+    n_batches =  len(trainloader)
+    warmup_steps =  warmup_epochs * n_batches
+    train_steps = n_batches * train_epochs
+    scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps, num_training_steps=train_steps)
+
+    for _ in tqdm(range(-warmup_epochs, train_epochs)):
+        
+        for stories, labels in tqdm(trainloader):
+            # this is PyTorch-specific as gradients get accumulated        
+            optimizer.zero_grad()
+            
+            start = stories[0]
+            end = stories[1]
+
+            labels = labels.to(device)
+           
+            #Tokenize sentence pairs. (All sequences in batch processing must be same length. Therefore we use padding to fiill shorter sequences with uninterpreted [PAD] tokens)
+            tokenized_batch = tokenizer(start, padding = True, text_pair = end, return_tensors='pt').to(device)
+
+            input_ids = tokenized_batch['input_ids'] #IDs of Tokens
+            token_type_ids = tokenized_batch['token_type_ids'] #1 if Token in second sentence, otherwise 0
+            attention_mask = tokenized_batch['attention_mask'] #0 if [PAD] token, 1 otherwise
+            
+            loss, predictions = model(input_ids, token_type_ids = token_type_ids, attention_mask=attention_mask, labels = labels, verbose=verbose)            
+            
+            loss.backward()
+   
+            optimizer.step()
+            scheduler.step()
+    
+    model.save_pretrained("bertfornsp_finetuned")
+
+
+def test(model_file=BASE_MODEL, verbose = False):
+    tokenizer = BertTokenizer.from_pretrained(BASE_MODEL)
+    model = BertForMultiChoiceNSP.from_pretrained(model_file)
 
     #Send to GPU and allow Evaluation
     model = model.to(device)
