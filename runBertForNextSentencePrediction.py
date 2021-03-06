@@ -5,6 +5,8 @@ from transformers import BertForNextSentencePrediction, BertTokenizer
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 from tqdm import tqdm
+from transformers import AdamW
+from transformers import get_linear_schedule_with_warmup
 
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -16,7 +18,7 @@ BATCH_SIZE = 5
 WARMUP_EPOCHS = 1
 TRAIN_EPOCHS = 10
 
-class BertForMultiChoiceNSP(BertForNextSentencePrediction):
+class BertForNSP(BertForNextSentencePrediction):
     def __init__(self, config):
         super().__init__(config)
         
@@ -146,7 +148,7 @@ def train(model_file=BASE_MODEL, verbose = False, evaluate = False, batch_size=B
 
 def test(model_file=BASE_MODEL, verbose = False):
     tokenizer = BertTokenizer.from_pretrained(BASE_MODEL)
-    model = BertForMultiChoiceNSP.from_pretrained(model_file)
+    model = BertForNSP.from_pretrained(model_file)
 
     #Send to GPU and allow Evaluation
     model = model.to(device)
