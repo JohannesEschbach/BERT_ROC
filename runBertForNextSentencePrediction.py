@@ -183,4 +183,11 @@ def test(model_file=BASE_MODEL, verbose = False):
     print(classification_report(label_list, pred_list))
 
 if __name__ == "__main__":
-    test(verbose=False)
+    #Test pretrained model
+    test()
+
+    #Fine-tune model "bertfornsp_finetuned"
+    train()
+
+    #Test model "bertfornsp_finetuned"
+    test(model_file="bertfornsp_finetuned")
