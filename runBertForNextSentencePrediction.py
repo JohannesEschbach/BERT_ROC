@@ -14,7 +14,7 @@ device = "cuda:0" if torch.cuda.is_available() else "cpu"
 # underlying pretrained LM
 BASE_MODEL = 'bert-large-uncased-whole-word-masking'
 
-BATCH_SIZE = 5
+BATCH_SIZE = 10
 WARMUP_EPOCHS = 1
 TRAIN_EPOCHS = 10
 
@@ -34,7 +34,7 @@ class BertForNSP(BertForNextSentencePrediction):
         logits = output[1]        
         
         # Model predicts sentence-pair as correct if True-logit > False-logit
-        predictions = (logits.argmax(dim=1) == 0).int()
+        predictions = (logits.argmax(dim=1) == 1).int()
         probs = self.softmax(logits).cpu().detach()
         
         # iterate over elements in batch
@@ -48,6 +48,49 @@ class BertForNSP(BertForNextSentencePrediction):
                 print("True label: ", bool(labels[i]))
              
         return loss, predictions.tolist()
+
+class RocStories(torch.utils.data.Dataset):
+    def __init__(self):    
+        dataset = []       
+        with open('roc_stories.csv', 'r', encoding='utf-8') as d:
+            reader = csv.reader(d, quotechar='"', delimiter=',' , quoting=csv.QUOTE_ALL, skipinitialspace=True)                
+            for line in reader:
+                dataset.append(line)  
+
+        self.data = []
+        self.labels = []
+
+        stories = []
+        endings = []
+        for sample in dataset:           
+            start = " ".join(sample[2:-1])
+            stories.append(start)            
+            end = sample[-1]                        
+            endings.append(end)
+
+        from random import shuffle
+        wrong_endings = endings.copy()
+        shuffle(wrong_endings)
+
+        assert len(stories) == len(endings)
+        for i, story in enumerate(stories):
+            
+            #True Ending
+            self.data.append([story, endings[i]])
+            self.labels.append(1)
+
+            #Wrong Ending
+            self.data.append([story, wrong_endings[i]])
+            self.labels.append(0)
+
+    def __getitem__(self, idx):
+        X = self.data[idx]
+        y = self.labels[idx]        
+        return X, y
+
+    def __len__(self):
+        assert len(self.data) == len(self.labels)
+        return len(self.labels)
 
 
 class ClozeTest(torch.utils.data.Dataset):
@@ -101,7 +144,7 @@ class ClozeTest(torch.utils.data.Dataset):
 
 
 #No idea if it works properly. Mostly copy-paste. My GPU is too small to try it
-def train(model_file=BASE_MODEL, verbose = False, evaluate = False, batch_size=BATCH_SIZE, warmup_epochs=WARMUP_EPOCHS, train_epochs=TRAIN_EPOCHS):
+def train(model_file=BASE_MODEL, verbose = False, evaluate = False, batch_size=BATCH_SIZE, warmup_epochs=WARMUP_EPOCHS, train_epochs=TRAIN_EPOCHS, cloze_test=True):
     tokenizer = BertTokenizer.from_pretrained(BASE_MODEL)
     model = BertForNSP.from_pretrained(model_file)
 
@@ -109,7 +152,8 @@ def train(model_file=BASE_MODEL, verbose = False, evaluate = False, batch_size=B
     model = model.to(device)
     model.train()
 
-    trainloader = torch.utils.data.DataLoader(ClozeTest(dev=False), batch_size=BATCH_SIZE, shuffle=True)
+    if cloze_test: trainloader = torch.utils.data.DataLoader(ClozeTest(dev=False), batch_size=BATCH_SIZE, shuffle=True)
+    else: trainloader = torch.utils.data.DataLoader(RocStories(), batch_size=BATCH_SIZE, shuffle=True)
 
     #LR maybe needs to be optimized
     optimizer = AdamW(model.parameters(), lr=1e-5)
@@ -143,7 +187,8 @@ def train(model_file=BASE_MODEL, verbose = False, evaluate = False, batch_size=B
             optimizer.step()
             scheduler.step()
     
-    model.save_pretrained("bertfornsp_finetuned")
+    if cloze_test: model.save_pretrained("bertfornsp_finetuned")
+    else: model.save_pretrained("bertfornsp_roc_finetuned")
 
 
 def test(model_file=BASE_MODEL, verbose = False):
@@ -184,10 +229,17 @@ def test(model_file=BASE_MODEL, verbose = False):
 
 if __name__ == "__main__":
     #Test pretrained model
-    test()
+    #test()
 
     #Fine-tune model "bertfornsp_finetuned"
-    train()
+    #train(cloze_test=True)
 
     #Test model "bertfornsp_finetuned"
-    test(model_file="bertfornsp_finetuned")
+    #test(model_file="bertfornsp_finetuned")
+
+    #Fine-tune model "bertfornsp_roc_finetuned"
+    train(cloze_test=False)
+
+    #Test model "bertfornsp_finetuned"
+    test(model_file="bertfornsp_roc_finetuned")
+
