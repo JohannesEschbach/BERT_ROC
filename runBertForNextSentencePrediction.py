@@ -34,7 +34,7 @@ class BertForNSP(BertForNextSentencePrediction):
         logits = output[1]        
         
         # Model predicts sentence-pair as correct if True-logit > False-logit
-        predictions = (logits.argmax(dim=1) == 1).int()
+        predictions = (logits.argmax(dim=1) == 0).int()
         probs = self.softmax(logits).cpu().detach()
         
         # iterate over elements in batch
@@ -77,11 +77,11 @@ class RocStories(torch.utils.data.Dataset):
             
             #True Ending
             self.data.append([story, endings[i]])
-            self.labels.append(1)
+            self.labels.append(0)
 
             #Wrong Ending
             self.data.append([story, wrong_endings[i]])
-            self.labels.append(0)
+            self.labels.append(1)
 
     def __getitem__(self, idx):
         X = self.data[idx]
@@ -99,17 +99,10 @@ class ClozeTest(torch.utils.data.Dataset):
         dataset = []
 
         # if dev=True, we load the dev set for testing
-        if dev:
-            with open('cloze_test.csv', 'r', encoding='utf-8') as d:
-                reader = csv.reader(d, quotechar='"', delimiter=',' , quoting=csv.QUOTE_ALL, skipinitialspace=True)                
-                for line in reader:
-                    dataset.append(line)                
-
-        else:
-            with open('cloze_train.csv', 'r', encoding='utf-8') as d:
-                reader = csv.reader(d, quotechar='"', delimiter=',' , quoting=csv.QUOTE_ALL, skipinitialspace=True)                
-                for line in reader:
-                    dataset.append(line)  
+        with open('cloze_test.csv' if dev else 'cloze_train.csv', 'r', encoding='utf-8') as d:
+            reader = csv.reader(d, quotechar='"', delimiter=',' , quoting=csv.QUOTE_ALL, skipinitialspace=True)                
+            for line in reader:
+                dataset.append(line) 
 
         self.data = []
         self.labels = []
@@ -128,10 +121,10 @@ class ClozeTest(torch.utils.data.Dataset):
             right_ending = sample[-1]
 
             self.data.append([start, end1])
-            self.labels.append(int(right_ending == "1"))
+            self.labels.append(0 if "1" == right_ending else 1)
 
             self.data.append([start, end2])
-            self.labels.append(int(right_ending == "2"))
+            self.labels.append(0 if "2" == right_ending else 0)
 
     def __getitem__(self, idx):
         X = self.data[idx]
