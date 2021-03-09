@@ -124,7 +124,7 @@ class ClozeTest(torch.utils.data.Dataset):
             self.labels.append(0 if "1" == right_ending else 1)
 
             self.data.append([start, end2])
-            self.labels.append(0 if "2" == right_ending else 0)
+            self.labels.append(0 if "2" == right_ending else 1)
 
     def __getitem__(self, idx):
         X = self.data[idx]
