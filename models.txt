@@ -5,10 +5,10 @@ Roc Only:
 https://drive.google.com/drive/folders/1tDSSUpwXkDsHZPjz0BcYyxzUUGtyf8-o?usp=sharing
 
 1. Roc 2. Cloze:
-Kamal
+https://drive.google.com/drive/folders/13UmXIzH_xPzVOsBhpHVGsUUumGq8I81w?usp=sharing
 
 1. Cloze 2. Roc:
-Kamal
+https://drive.google.com/drive/folders/1q8qfmCwndf30egVcOWi4xjXKI-rz8Byd?usp=sharing
 
 1. Roc 2. Cloze with Squared Error Loss, Hypothesis Only data with target probability (0.5, 0.5)
 https://drive.google.com/drive/folders/13-pDtkVTXAk7eDiLLE9TiVgSL7CTh8c9?usp=sharing
