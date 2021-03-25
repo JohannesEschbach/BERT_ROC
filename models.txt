@@ -1,0 +1,21 @@
+Cloze Only:
+https://drive.google.com/drive/folders/119WnpHBmM637M0SVk3buy-KPI5aWpsF0?usp=sharing
+
+Roc Only:
+https://drive.google.com/drive/folders/1tDSSUpwXkDsHZPjz0BcYyxzUUGtyf8-o?usp=sharing
+
+1. Roc 2. Cloze:
+Kamal
+
+1. Cloze 2. Roc:
+Kamal
+
+1. Roc 2. Cloze with Squared Error Loss, Hypothesis Only data with target probability (0.5, 0.5)
+https://drive.google.com/drive/folders/13-pDtkVTXAk7eDiLLE9TiVgSL7CTh8c9?usp=sharing
+    --> If that really works helps with bias at all then i should probabily do it again without Roc pretraining
+
+Cloze with 5 000 Roc Stories mixed in
+https://drive.google.com/drive/folders/1-XfWuEsxEAKUby35Zz_y9zEo6kyDuSRF?usp=sharing
+
+Cloze with 10 000 Roc Stories mixed in
+https://drive.google.com/drive/folders/103wz016PCrACDgHcHMlxOmov1u1FW--p?usp=sharing
