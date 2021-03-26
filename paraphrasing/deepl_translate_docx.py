@@ -6,6 +6,7 @@ import docx
 import csv
 import os
 import time
+from uuid import UUID
 from zipfile import BadZipfile
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
@@ -118,14 +119,35 @@ def paraphrase(src: str, languages: List[str], dir: str):
         filename = f"{src}.{'_'.join(languages[:i+1])}.csv"
         current_dest = os.path.join(dir, filename)
         if os.path.isfile(current_dest):
-            print("omitting reproduction of existing file:", current_dest)
+            print("completing existing file:", current_dest)
+            with open(current_src) as csv_in:
+                csv_in_reader = csv.reader(csv_in)
+                missing_rows = []
+                with open(current_dest) as csv_dest:
+                    csv_dest_reader = csv.reader(csv_dest)
+                    for row in csv_in_reader:
+                        uuid = row[0]
+                        try:
+                            UUID(uuid)
+                        except ValueError:
+                            continue
+                        for row_dest in csv_dest_reader:
+                            if uuid == row[0]:
+                                break
+                        else:
+                            missing_rows.append(row)
+                print(f"{len(missing_rows)} missing rows")
+                rows = translate(lang, missing_rows)
+                with open(current_dest, "a") as csv_out:
+                    csv_writer = csv.writer(csv_out)
+                    for row in rows:
+                        csv_writer.writerow(row)
         else:
             print("Translating", current_src, "to", current_dest)
             with open(current_src) as csv_in:
                 csv_in_reader = csv.reader(csv_in)
-                next(csv_in_reader)
                 rows = translate(lang, csv_in_reader)
-                with open(current_dest, "w") as csv_out:
+                with open(current_dest, "a") as csv_out:
                     csv_writer = csv.writer(csv_out)
                     for row in rows:
                         csv_writer.writerow(row)
@@ -133,15 +155,25 @@ def paraphrase(src: str, languages: List[str], dir: str):
 
 
 if __name__ == "__main__":
-    lang_pipelines = [
-        ["cs-CS", "en-GB"],
-        ["cs-CS", "es-ES", "en-GB"],
-    ]
+    lang_target = "en-GB"
+    lang_pipelines = [translaductors + [lang_target] for translaductors in [
+        # languages available:
+        # bg-BG, zh-ZH, cs-CS (cs-CZ), da-DA (da-DK), nl-NL, en-US,
+        # en-GB, et-ET, fi-FI, de-DE, el-EL, hu-HU, it-IT, ja-JA, lv-LV,
+        # pl-PL, pt-PT, pt-BR, ro-RO, ru-RU, sk-SK, sl-SL, es-ES, sv-SV
+        ["cs-CS"],
+        ["cs-CS", "es-ES"],
+        ["ja-JA"],
+        ["cs-CS", "ja-JA", "pl-PL"],
+        ["zh-ZH"],
+        ["ru-RU"],
+        ["fi-FI"],
+    ]]
     datasets = [
         "cloze_test",
         "cloze_train",
         "cloze_test_nolabel",
-        "roc_stories"
+        # "roc_stories"
     ]
     dir = os.path.realpath(os.path.join(os.getcwd(), "data"))
     for dataset in datasets:
