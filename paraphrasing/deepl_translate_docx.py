@@ -18,6 +18,7 @@ from utils import Buckets
 
 
 TBB_PATH = "~/.local/share/torbrowser/tbb/x86_64/tor-browser_en-US"
+TBB_PATH = os.path.realpath(os.path.expanduser(TBB_PATH))
 TIMEOUT_DEFAULT = 10
 TIMEOUT_TRANSLATE = 180
 
@@ -134,6 +135,7 @@ def paraphrase(src: str, languages: List[str], dir: str):
 if __name__ == "__main__":
     lang_pipelines = [
         ["cs-CS", "en-GB"],
+        ["cs-CS", "es-ES", "en-GB"],
     ]
     datasets = [
         "cloze_test",
@@ -141,7 +143,7 @@ if __name__ == "__main__":
         "cloze_test_nolabel",
         "roc_stories"
     ]
+    dir = os.path.realpath(os.path.join(os.getcwd(), "data"))
     for dataset in datasets:
         for languages in lang_pipelines:
-            paraphrase(dataset, languages,
-                       dir="~/BERT_ROC/paraphrasing/data")
+            paraphrase(dataset, languages, dir)
