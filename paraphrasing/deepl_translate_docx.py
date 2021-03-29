@@ -97,10 +97,9 @@ def translate(lang: str, rows: Iterable[List[str]], bucket_size: int = 250) \
                 r = session.get(href)
                 try:
                     document = docx.api.Document(BytesIO(r.content))
+                    break
                 except BadZipfile:
                     continue
-                finally:
-                    break
             table = document.tables[0]
             for out_row in table.rows:
                 cells = [cell.text for cell in out_row.cells]
@@ -168,12 +167,13 @@ if __name__ == "__main__":
         ["zh-ZH"],
         ["ru-RU"],
         ["fi-FI"],
+        ["de-DE"]
     ]]
     datasets = [
-        "cloze_test",
-        "cloze_train",
-        "cloze_test_nolabel",
-        # "roc_stories"
+        # "cloze_test",
+        # "cloze_train",
+        # "cloze_test_nolabel",
+        "roc_stories"
     ]
     dir = os.path.realpath(os.path.join(os.getcwd(), "data"))
     for dataset in datasets:
