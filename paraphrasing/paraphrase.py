@@ -22,7 +22,7 @@ def paraphrase(src: str, languages: List[str], wd: str,
                 print("completing existing file:", current_dest)
             else:
                 with open(current_dest, "a") as csv_dest:
-                    csv_dest.write(current_dest.readline())
+                    csv_dest.write(csv_dest.readline())
             print("Translating", current_src, "to", current_dest)
             csv_in_reader = csv.reader(csv_in)
             missing_rows = []
