@@ -69,10 +69,9 @@ def translate_docx(driver: WebDriver, filename: str, lang: str) -> str:
     time.sleep(10)
     driver.get("https://www.deepl.com/translator")
     try:
-        _f(driver,
-           'button[dl-test="doctrans-tabs-switch-docs"]').click()
-        _f(driver,
-           '#file-upload_input').send_keys(filename)
+        _f(driver, 'button.dl_cookieBanner--buttonSelected').click()
+        _f(driver, 'button[dl-test="doctrans-tabs-switch-docs"]').click()
+        _f(driver, '#file-upload_input').send_keys(filename)
         _f(driver, 'button[dl-test="doctrans-upload-lang-item"]'
                    + f'[dl-lang="{lang}"]').click()
         WebDriverWait(driver,
