@@ -9,10 +9,12 @@ import time
 from uuid import UUID
 from zipfile import BadZipfile
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.remote.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, \
+                                       ElementClickInterceptedException
 from tbselenium.tbdriver import TorBrowserDriver
 
 from utils import Buckets
@@ -20,15 +22,27 @@ from utils import Buckets
 
 TBB_PATH = "~/.local/share/torbrowser/tbb/x86_64/tor-browser_en-US"
 TBB_PATH = os.path.realpath(os.path.expanduser(TBB_PATH))
+TBB_PROXY = "socks5://127.0.0.1:9050"
 TIMEOUT_DEFAULT = 10
 TIMEOUT_TRANSLATE = 180
+
+if __name__ == "__main__":
+    wd = os.path.realpath(os.path.join(os.getcwd(), "data"))
+
+
+def _debug_screenshot(driver: WebDriver, e: Exception,
+                      wd: str = wd if __name__ == "__main__" else "",
+                      do: bool = __name__ == "__main__"):
+    if do:
+        filename = f"{e.__class__.__name__}.png"
+        driver.save_screenshot(os.path.join(wd, filename))
 
 
 def _get_session():
     session = requests.session()
     # Tor uses the 9050 port as the default socks port
-    session.proxies = {'http':  'socks5://127.0.0.1:9050',
-                       'https': 'socks5://127.0.0.1:9050'}
+    session.proxies = {'http':  TBB_PROXY,
+                       'https': TBB_PROXY}
     return session
 
 
@@ -69,16 +83,18 @@ def translate_docx(driver: WebDriver, filename: str, lang: str) -> str:
     time.sleep(10)
     driver.get("https://www.deepl.com/translator")
     try:
-        _f(driver, 'button.dl_cookieBanner--buttonSelected').click()
+        # _f(driver, 'button.dl_cookieBanner--buttonSelected').click()
         _f(driver, 'button[dl-test="doctrans-tabs-switch-docs"]').click()
         _f(driver, '#file-upload_input').send_keys(filename)
         _f(driver, 'button[dl-test="doctrans-upload-lang-item"]'
-                   + f'[dl-lang="{lang}"]').click()
+                   + f'[dl-lang="{lang}"]').send_keys(Keys.RETURN)
         WebDriverWait(driver,
                       TIMEOUT_TRANSLATE).until(_find_download_link)
     except TimeoutException:
         print("Restarting due to timeout")
-        return
+    except ElementClickInterceptedException as e:
+        _debug_screenshot(driver, e)
+        raise e
     return _find_download_link(driver).get_attribute("href")
 
 
@@ -90,7 +106,10 @@ def translate(lang: str, rows: Iterable[List[str]], bucket_size: int = 250) \
             while True:
                 os.environ['MOZ_HEADLESS'] = '1'
                 with TorBrowserDriver(TBB_PATH) as driver:
-                    href = translate_docx(driver, temp_docx_in.name, lang)
+                    try:
+                        href = translate_docx(driver, temp_docx_in.name, lang)
+                    except Exception as e:
+                        _debug_screenshot(driver, e)
                     if not href:
                         continue
                 session = _get_session()
@@ -107,16 +126,16 @@ def translate(lang: str, rows: Iterable[List[str]], bucket_size: int = 250) \
                     yield cells
 
 
-def paraphrase(src: str, languages: List[str], dir: str):
-    dir = os.path.realpath(dir)
+def paraphrase(src: str, languages: List[str], wd: str):
+    wd = os.path.realpath(wd)
     if src.endswith(".csv"):
         src = src[:-4]
-    current_src = os.path.join(dir, f"{src}.csv")
+    current_src = os.path.join(wd, f"{src}.csv")
     for i, lang in enumerate(languages):
         if not os.path.isfile(current_src):
             raise FileNotFoundError(current_src)
         filename = f"{src}.{'_'.join(languages[:i+1])}.csv"
-        current_dest = os.path.join(dir, filename)
+        current_dest = os.path.join(wd, filename)
         if os.path.isfile(current_dest):
             print("completing existing file:", current_dest)
             with open(current_src) as csv_in:
@@ -168,7 +187,6 @@ if __name__ == "__main__":
         "cloze_test",
         # "cloze_test_nolabel",
     ]
-    dir = os.path.realpath(os.path.join(os.getcwd(), "data"))
     for dataset in datasets:
         for languages in lang_pipelines:
-            paraphrase(dataset, languages, dir)
+            paraphrase(dataset, languages, wd)
