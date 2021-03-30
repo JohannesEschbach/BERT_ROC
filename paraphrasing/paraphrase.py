@@ -18,14 +18,13 @@ def paraphrase(src: str, languages: List[str], wd: str,
         filename = f"{src}.{'_'.join(languages[:i+1])}.csv"
         current_dest = os.path.join(wd, filename)
         with open(current_src) as csv_in:
+            csv_in_reader = csv.reader(csv_in)
+            missing_rows = []
             if os.path.isfile(current_dest):
                 print("completing existing file:", current_dest)
             else:
                 with open(current_dest, "a") as csv_dest:
-                    csv_dest.write(csv_dest.readline())
-            print("Translating", current_src, "to", current_dest)
-            csv_in_reader = csv.reader(csv_in)
-            missing_rows = []
+                    csv_dest.write(csv_in.readline())
             with open(current_dest) as csv_dest:
                 csv_dest_reader = csv.reader(csv_dest)
                 for row in csv_in_reader:
@@ -39,6 +38,7 @@ def paraphrase(src: str, languages: List[str], wd: str,
                             break
                     else:
                         missing_rows.append(row)
+            print("Translating", current_src, "to", current_dest)
             print(f"{len(missing_rows)} missing rows")
             rows = translator.translate(lang, missing_rows)
             with open(current_dest, "a") as csv_out:
