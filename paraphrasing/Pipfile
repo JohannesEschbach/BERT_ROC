@@ -9,6 +9,11 @@ selenium = "*"
 tbselenium = "*"
 googletrans = "*"
 lit-nlp = "*"
+torch = "*"
+transformers = "*"
+sklearn = "*"
+tqdm = "*"
+matplotlib = "*"
 
 [dev-packages]
 ipykernel = "*"
