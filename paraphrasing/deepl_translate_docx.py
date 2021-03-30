@@ -89,6 +89,7 @@ def translate(lang: str, rows: Iterable[List[str]], bucket_size: int = 250) \
         with tempfile.NamedTemporaryFile(suffix=".docx") as temp_docx_in:
             _write_docx(temp_docx_in, bucket)
             while True:
+                os.environ['MOZ_HEADLESS'] = '1'
                 with TorBrowserDriver(TBB_PATH) as driver:
                     href = translate_docx(driver, temp_docx_in.name, lang)
                     if not href:
@@ -153,27 +154,20 @@ def paraphrase(src: str, languages: List[str], dir: str):
         current_src = current_dest
 
 
+languages_available = [
+    'bg-BG', 'cs-CS', 'da-DA', 'de-DE', 'el-EL', 'en-GB', 'en-US', 'es-ES',
+    'et-ET', 'fi-FI', 'hu-HU', 'it-IT', 'ja-JA', 'lv-LV', 'nl-NL', 'pl-PL',
+    'pt-BR', 'pt-PT', 'ro-RO', 'ru-RU', 'sk-SK', 'sl-SL', 'sv-SV', 'zh-ZH'
+]
+
 if __name__ == "__main__":
+    lang_input = "en"
     lang_target = "en-GB"
-    lang_pipelines = [translaductors + [lang_target] for translaductors in [
-        # languages available:
-        # bg-BG, zh-ZH, cs-CS (cs-CZ), da-DA (da-DK), nl-NL, en-US,
-        # en-GB, et-ET, fi-FI, de-DE, el-EL, hu-HU, it-IT, ja-JA, lv-LV,
-        # pl-PL, pt-PT, pt-BR, ro-RO, ru-RU, sk-SK, sl-SL, es-ES, sv-SV
-        ["cs-CS"],
-        ["cs-CS", "es-ES"],
-        ["ja-JA"],
-        ["cs-CS", "ja-JA", "pl-PL"],
-        ["zh-ZH"],
-        ["ru-RU"],
-        ["fi-FI"],
-        ["de-DE"]
-    ]]
+    lang_pipelines = [[middle, lang_target] for middle in languages_available
+                      if not middle.startswith(lang_input)]
     datasets = [
-        # "cloze_test",
-        # "cloze_train",
+        "cloze_test",
         # "cloze_test_nolabel",
-        "roc_stories"
     ]
     dir = os.path.realpath(os.path.join(os.getcwd(), "data"))
     for dataset in datasets:
