@@ -14,6 +14,7 @@ transformers = "*"
 sklearn = "*"
 tqdm = "*"
 matplotlib = "*"
+nltk = "*"
 
 [dev-packages]
 ipykernel = "*"
