@@ -15,6 +15,7 @@ sklearn = "*"
 tqdm = "*"
 matplotlib = "*"
 nltk = "*"
+tabulate = "*"
 
 [dev-packages]
 ipykernel = "*"
