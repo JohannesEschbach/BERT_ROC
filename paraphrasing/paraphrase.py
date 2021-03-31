@@ -48,17 +48,22 @@ def paraphrase(src: str, languages: List[str], wd: str,
         current_src = current_dest
 
 
-if __name__ == "__main__":
-    wd = os.path.realpath(os.path.join(os.getcwd(), "data"))
-    lang_input = "en"
-    translator = GoogleTranslator()
-    translator = DeepLTranslator(headless=True)
+def main(translator: Translator = GoogleTranslator(),
+         wd: str = os.path.realpath(os.path.join(os.getcwd(), "data")),
+         lang_input: str = "en"):
+    fixed_hops = []
+    fixed_hops = [[lang
+                   for lang in translator.dest_languages
+                   if lang.startswith(hop)][0]
+                  for hop in fixed_hops]
     lang_target = [lang
                    for lang in translator.dest_languages
                    if lang.startswith(lang_input)][0]
-    lang_pipelines = [[middle, lang_target]
+    lang_pipelines = [fixed_hops + [middle, lang_target]
                       for middle in translator.dest_languages
-                      if not middle.startswith(lang_input)]
+                      if middle != lang_target
+                      and not (len(fixed_hops) and middle == fixed_hops[-1])
+                      and not middle.startswith(lang_input)]
     datasets = [
         "cloze_test",
         # "cloze_test_nolabel",
@@ -66,3 +71,7 @@ if __name__ == "__main__":
     for dataset in datasets:
         for languages in reversed(lang_pipelines):
             paraphrase(dataset, languages, wd, translator)
+
+
+if __name__ == "__main__":
+    main()
