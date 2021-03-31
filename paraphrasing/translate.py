@@ -18,6 +18,7 @@ from selenium.common.exceptions import TimeoutException, \
 from tbselenium.tbdriver import TorBrowserDriver
 
 import googletrans
+from httpcore._exceptions import ConnectTimeout
 
 from typing import List, Iterable, Generator
 from abc import ABC, abstractmethod
@@ -48,26 +49,34 @@ class GoogleTranslator(Translator):
     bucket_size: int
     dest_languages = sorted(list(googletrans.LANGUAGES.keys()))
 
-    def __init__(self, bucket_size: int = 2):
+    def __init__(self, bucket_size: int = 5):
         self.bucket_size = bucket_size
 
     def translate(self, lang: str, rows: Iterable[List[str]]) \
      -> Generator[List[str], None, None]:
         for j, bucket in enumerate(Buckets(rows, self.bucket_size)):
             print(f"translating bucket {j} to {lang}")
-            translator = googletrans.Translator()
             original = [cell for row in bucket for cell in row]
             translatable = [self._translatable(cell) for cell in original]
-            start = time.time()
-            translated = translator.translate([cell
-                                               for cell, is_translatable
-                                               in zip(original, translatable)
-                                               if is_translatable],
-                                              dest=lang[:2])
+            while True:
+                start = time.time()
+                translator = googletrans.Translator()
+                try:
+                    translated = translator.translate([cell
+                                                       for cell, can_translate
+                                                       in zip(original,
+                                                              translatable)
+                                                       if can_translate],
+                                                      dest=lang[:2])
+                    break
+                except ConnectTimeout:
+                    print(f"Timeout after {int(time.time()-start):3d}s")
+                    time.sleep(10)
+                    print("Retrying")
             print(f"translated {len(bucket)} stories in "
                   + f"{int(time.time()-start):3d}s")
-            cells = [translated.pop(0).text if is_translatable else cell
-                     for cell, is_translatable in zip(original, translatable)]
+            cells = [translated.pop(0).text if can_translate else cell
+                     for cell, can_translate in zip(original, translatable)]
             last_row_length = 0
             for i, row in enumerate(bucket):
                 offset = i * last_row_length
