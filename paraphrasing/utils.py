@@ -41,15 +41,24 @@ def minimum_edit_distance(a: str, b: str,
     Compute the minimum required number of insert, delete or update operations,
     weighted by the respective parameters.
     """
-    dst = np.zeros((len(a) + 1, len(b) + 1), dtype=int)
+    distances = np.zeros((len(a) + 1, len(b) + 1), dtype=int)
     for i in range(len(a)):
-        dst[i, 0] = i
+        distances[i, 0] = i
         for j in range(len(b)):
-            dst[0, j] = j
+            distances[0, j] = j
             if a[i] == b[j]:
-                dst[i+1, j+1] = dst[i, j]
+                distances[i+1, j+1] = distances[i, j]
             else:
-                dst[i+1, j+1] = min(insert + dst[i+1, j],
-                                    delete + dst[i, j+1],
-                                    update + dst[i, j])
-    return dst[len(a), len(b)]
+                distances[i+1, j+1] = min(insert + distances[i+1, j],
+                                          delete + distances[i, j+1],
+                                          update + distances[i, j])
+    return distances[len(a), len(b)]
+
+
+def is_parsable(text: str, type_func: type) -> bool:
+    try:
+        type_func(text)
+        return True
+    except ValueError:
+        pass
+    return False

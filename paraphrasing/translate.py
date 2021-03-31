@@ -1,12 +1,21 @@
 import os
 import time
+from uuid import UUID
+from typing import List, Iterable, Generator, Tuple
+from abc import ABC, abstractmethod
+
+from utils import Buckets, is_parsable
+
+# used for GoogleTranslator only:
+import googletrans
+from httpcore._exceptions import ConnectTimeout, ReadTimeout
+
+# used for DeepLTranslator only:
 import requests
 import tempfile
 from io import BytesIO
-from uuid import UUID
 import docx
 from zipfile import BadZipfile
-
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
@@ -16,14 +25,6 @@ from selenium.common.exceptions import TimeoutException, \
                                        ElementClickInterceptedException, \
                                        NoSuchElementException
 from tbselenium.tbdriver import TorBrowserDriver
-
-import googletrans
-from httpcore._exceptions import ConnectTimeout
-
-from typing import List, Iterable, Generator
-from abc import ABC, abstractmethod
-
-from utils import Buckets
 
 
 TBB_PATH = "~/.local/share/torbrowser/tbb/x86_64/tor-browser_en-US"
@@ -44,6 +45,36 @@ class Translator(ABC):
      -> Generator[List[str], None, None]:
         pass
 
+    @staticmethod
+    def _translatable(text: str) -> bool:
+        if is_parsable(text, UUID):
+            return False
+        if is_parsable(text, int):
+            return False
+        return len(text) > 0
+
+    @classmethod
+    def _split_translatable(self, rows: Iterable[Iterable[str]]) \
+     -> Tuple[List[List[bool]], List[str], List[str]]:
+        mask, translate_input, residue = [], [], []
+        for row in rows:
+            mask.append([])
+            for cell in row:
+                mask[-1].append(self._translatable(cell))
+                if mask[-1][-1]:
+                    translate_input.append(cell)
+                else:
+                    residue.append(cell)
+        return mask, translate_input, residue
+
+    @staticmethod
+    def _merge_translated(mask: List[List[bool]], translated: List[str],
+                          residue: List[str]) \
+     -> Generator[List[str], None, None]:
+        for row in mask:
+            yield [translated.pop(0) if is_translated else residue.pop(0)
+                   for is_translated in row]
+
 
 class GoogleTranslator(Translator):
     bucket_size: int
@@ -56,46 +87,31 @@ class GoogleTranslator(Translator):
      -> Generator[List[str], None, None]:
         for j, bucket in enumerate(Buckets(rows, self.bucket_size)):
             print(f"translating bucket {j} to {lang}")
-            original = [cell for row in bucket for cell in row]
-            translatable = [self._translatable(cell) for cell in original]
+            mask, translate_input, residue = self._split_translatable(bucket)
             while True:
                 start = time.time()
                 translator = googletrans.Translator()
                 try:
-                    translated = translator.translate([cell
-                                                       for cell, can_translate
-                                                       in zip(original,
-                                                              translatable)
-                                                       if can_translate],
+                    translated = translator.translate(translate_input,
                                                       dest=lang[:2])
                     break
-                except ConnectTimeout:
-                    print(f"Timeout after {int(time.time()-start):3d}s")
+                except Exception as e:
+                    duration = time.time() - start
+                    print(f"{e.__class__.__name__} after {int(duration):3d}s")
                     time.sleep(10)
                     print("Retrying")
             print(f"translated {len(bucket)} stories in "
                   + f"{int(time.time()-start):3d}s")
-            cells = [translated.pop(0).text if can_translate else cell
-                     for cell, can_translate in zip(original, translatable)]
-            last_row_length = 0
-            for i, row in enumerate(bucket):
-                offset = i * last_row_length
-                yield cells[offset:offset+len(row)]
-                last_row_length = len(row)
-
-    @staticmethod
-    def _translatable(text: str) -> bool:
-        try:
-            UUID(text)
-            return False
-        except ValueError:
-            pass
-        try:
-            int(text)
-            return False
-        except ValueError:
-            pass
-        return len(text) > 0
+            translated = [item.text for item in translated]
+            merged = self._merge_translated(mask, translated, residue)
+            equal_counter = 0
+            for original_row, translated_row in zip(bucket, merged):
+                if original_row == translated_row:
+                    equal_counter += 1
+                else:
+                    yield translated_row
+            if equal_counter:
+                print(f"{equal_counter:2d} stories returned untranslated")
 
 
 class DeepLTranslator(Translator):
@@ -113,9 +129,10 @@ class DeepLTranslator(Translator):
 
     def translate(self, lang: str, rows: Iterable[List[str]]) \
      -> Generator[List[str], None, None]:
-        for bucket in Buckets(rows, self.bucket_size):
+        for i, bucket in enumerate(Buckets(rows, self.bucket_size)):
+            mask, translate_input, residue = self._split_translatable(bucket)
             with tempfile.NamedTemporaryFile(suffix=".docx") as temp_docx_in:
-                self._write_docx(temp_docx_in, bucket)
+                self._write_docx(temp_docx_in, [[c] for c in translate_input])
                 while True:
                     if self.headless:
                         os.environ['MOZ_HEADLESS'] = '1'
@@ -124,6 +141,7 @@ class DeepLTranslator(Translator):
                             href = self._translate_docx(driver,
                                                         temp_docx_in.name,
                                                         lang)
+                            print(href)
                         except Exception as e:
                             _debug_screenshot(driver, e)
                             raise e
@@ -139,15 +157,19 @@ class DeepLTranslator(Translator):
                     except BadZipfile:
                         continue
                 table = document.tables[0]
-                for out_row in table.rows:
-                    cells = [cell.text for cell in out_row.cells]
-                    if len(cells) and all(cells):
-                        yield cells
+                translated = [cell.text
+                              for out_row in table.rows[1:]
+                              for cell in out_row.cells]
+                print(translated)
+                if not len(translated) or not all(translated):
+                    print(f"nothing translated from bucket {i}!")
+                    continue
+                yield from self._merge_translated(mask, translated, residue)
 
     @staticmethod
     def _write_docx(docx_file: BytesIO, rows: Iterable[List[str]]):
         doc = docx.Document()
-        table = doc.add_table(rows=2, cols=len(rows[0]))
+        table = doc.add_table(rows=1, cols=len(rows[0]))
         for row in rows:
             doc_cells = table.add_row().cells
             for doc_cell, input_cell in zip(doc_cells, row):
