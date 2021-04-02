@@ -28,13 +28,16 @@ def paraphrase(src: str, languages: List[str], wd: str,
             with open(current_dest) as csv_dest:
                 csv_dest_reader = csv.reader(csv_dest)
                 for row in csv_in_reader:
+                    csv_dest.seek(0)
+                    if not len(row):
+                        continue
                     uuid = row[0]
                     try:
                         UUID(uuid)
                     except ValueError:
                         continue
                     for row_dest in csv_dest_reader:
-                        if uuid == row[0]:
+                        if uuid == row_dest[0]:
                             break
                     else:
                         missing_rows.append(row)
@@ -48,10 +51,11 @@ def paraphrase(src: str, languages: List[str], wd: str,
         current_src = current_dest
 
 
-def main(translator: Translator = GoogleTranslator(),
+def main(dataset: str = "negated_synonymized",
+         translator: Translator = DeepLTranslator(),  # GoogleTranslator(),
          wd: str = os.path.realpath(os.path.join(os.getcwd(), "data")),
          lang_input: str = "en"):
-    fixed_hops = []
+    fixed_hops = ["ja-JA"]
     fixed_hops = [[lang
                    for lang in translator.dest_languages
                    if lang.startswith(hop)][0]
@@ -64,13 +68,8 @@ def main(translator: Translator = GoogleTranslator(),
                       if middle != lang_target
                       and not (len(fixed_hops) and middle == fixed_hops[-1])
                       and not middle.startswith(lang_input)]
-    datasets = [
-        "cloze_test",
-        # "cloze_test_nolabel",
-    ]
-    for dataset in datasets:
-        for languages in reversed(lang_pipelines):
-            paraphrase(dataset, languages, wd, translator)
+    for languages in reversed(lang_pipelines):
+        paraphrase(dataset, languages, wd, translator)
 
 
 if __name__ == "__main__":

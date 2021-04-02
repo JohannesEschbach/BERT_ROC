@@ -29,7 +29,7 @@ def uuid_dict(rows: Iterable[Iterable[str]]) -> Dict[str, List[str]]:
                      for cell in row[1:]
                      if not is_parsable(cell, int)]
             for row in rows
-            if is_parsable(row[0], UUID)}
+            if len(row) and is_parsable(row[0], UUID)}
 
 
 def score_paraphrasations(dataset: str = "cloze_test",

@@ -202,8 +202,8 @@ class DeepLTranslator(Translator):
         }.items():
             driver.profile.set_preference(key, value)
         time.sleep(2)
-        driver.get("https://www.deepl.com/translator")
         try:
+            driver.get("https://www.deepl.com/translator")
             # _f(driver, 'button.dl_cookieBanner--buttonSelected').click()
             _f(driver, 'button[dl-test="doctrans-tabs-switch-docs"]').click()
             _f(driver, '#file-upload_input').send_keys(filename)
