@@ -11,50 +11,54 @@
 
 # %% codecell
 import csv
-import models as m
+import paraphrasing.models as m
 
 # %% markdown
 # # Training
-# %% markdown
+#
 # ## RocOnly
+
 # %% codecell
-train_epochs_roc = 2
+# train_epochs_roc = 10
 # train(train_epochs=train_epochs_roc, cloze_test=False, batch_size=32, warmup_epochs=0, model_name=ROC_MODEL)
-m.test(m.getModelFileName(m.ROC_MODEL, train_epochs_roc))
+# fn = m.getModelFileName(m.CLOZE_MODEL, train_epochs_roc)
+# m.test(fn)
 # here was the content which was moved to apply_tools.py
 
 # %% markdown
 # # Experiments
+
 # %% codecell
 def test_testset(file, hypothesis_only):
     if file =="cloze_test_negated.csv":
-        cloze_test = ClozeTest_negated()
-        cloze_test_mc = ClozeTest_negated_MC()
+        cloze_test = m.ClozeTest_negated()
+        cloze_test_mc = m.ClozeTest_negated_MC()
     else:
-        cloze_test = ClozeTest(dev=True, hypothesis_only = hypothesis_only, file=file)
-        cloze_test_mc = ClozeTest_MC(dev=True, hypothesis_only=hypothesis_only, file=file)
+        cloze_test = m.ClozeTest(dev=True, hypothesis_only = hypothesis_only, file=file)
+        cloze_test_mc = m.ClozeTest_MC(dev=True, hypothesis_only=hypothesis_only, file=file)
 
 
     print("\nBert\n")
-    test(BASE_MODEL, cloze_test = cloze_test)
-    test_MC(BASE_MODEL, cloze_test = cloze_test_mc)
+    m.test(m.BASE_MODEL, cloze_test = cloze_test)
+    m.test_MC(m.BASE_MODEL, cloze_test = cloze_test_mc)
 
     print("\nRocOnly\n")
-    test(getModelFileName(ROC_MODEL, ""), cloze_test = cloze_test)
-    test_MC(getModelFileName(ROC_MODEL, ""), cloze_test = cloze_test_mc)
+    m.test(m.getModelFileName(m.ROC_MODEL, ""), cloze_test = cloze_test)
+    m.test_MC(m.getModelFileName(m.ROC_MODEL, ""), cloze_test = cloze_test_mc)
 
     print("\nClozeOnly\n")
-    test(getModelFileName("bertfornsp_clozeonly_finetuned", "10"), cloze_test = cloze_test)
-    test_MC(getModelFileName("bertfornsp_clozeonly_finetuned", "10"), cloze_test = cloze_test_mc)
+    m.test(m.getModelFileName("bertfornsp_clozeonly_finetuned", "10"), cloze_test = cloze_test)
+    m.test_MC(m.getModelFileName("bertfornsp_clozeonly_finetuned", "10"), cloze_test = cloze_test_mc)
 
     print("\nRocCloze\n")
-    test(getModelFileName("bertfornsp_cloze_finetuned", "10"), cloze_test = cloze_test)
-    test_MC(getModelFileName("bertfornsp_cloze_finetuned", "10"), cloze_test = cloze_test_mc)
+    m.test(m.getModelFileName("bertfornsp_cloze_finetuned", "10"), cloze_test = cloze_test)
+    m.test_MC(m.getModelFileName("bertfornsp_cloze_finetuned", "10"), cloze_test = cloze_test_mc)
 
     print("\nCloze + 5000 Roc\n")
-    test(getModelFileName("bertfornsp_mixed", "5"), cloze_test = cloze_test)
-    test_MC(getModelFileName("bertfornsp_mixed", "5"), cloze_test = cloze_test_mc)
+    m.test(m.getModelFileName("bertfornsp_mixed", "5"), cloze_test = cloze_test)
+    m.test_MC(m.getModelFileName("bertfornsp_mixed", "5"), cloze_test = cloze_test_mc)
 
+test_testset("paraphrasing/data/cloze_test.hu-HU_sl-SL_en-GB.csv", False)
 
 # %% codecell
 #Not complete yet

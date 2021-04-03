@@ -151,7 +151,7 @@ class ClozeTest_negated(torch.utils.data.Dataset):
 
 
         with open(dir, 'r', encoding='utf-8') as d:
-            reader = csv.reader(d, quotechar='"', delimiter=';',
+            reader = csv.reader(d, quotechar='"', delimiter=',',
                                 quoting=csv.QUOTE_ALL, skipinitialspace=True)
             for line in reader:
                 dataset.append(line)
@@ -242,7 +242,7 @@ class ClozeTest_negated_MC(torch.utils.data.Dataset):
         dir = current_directory + "cloze_test_negated.csv"
 
         with open(dir, 'r', encoding='utf-8') as d:
-            reader = csv.reader(d, quotechar='"', delimiter=';',
+            reader = csv.reader(d, quotechar='"', delimiter=',',
                                 quoting=csv.QUOTE_ALL, skipinitialspace=True)
             for line in reader:
                 dataset.append(line)
@@ -270,11 +270,18 @@ class ClozeTest_negated_MC(torch.utils.data.Dataset):
         assert len(self.data) == len(self.labels)
         return len(self.labels)
 
+
 # %% markdown
 # # Auxiliary Functions
 # %% codecell
-def getModelFileName(model_name, last_epoch):
-    return current_directory + model_name + str(last_epoch)
+def getModelFileName(model_name, last_epoch, subdir = "models"):
+    path = os.path.join(current_directory, subdir, model_name
+                        + str(last_epoch))
+    if not os.path.isdir(path):
+        raise FileNotFoundError(path)
+    return path
+
+
 # %% codecell
 def weight_diff(model1, model2):
     diff = torch.nn.MSELoss() # diff(a, b) = ((a - b) ** 2).mean()

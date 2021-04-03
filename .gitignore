@@ -1,6 +1,6 @@
 .ipynb_checkpoints/
 .*.ipynb
-
+.~lock.*#
 __pycache__/
 .old/
 models/
