@@ -51,11 +51,11 @@ def paraphrase(src: str, languages: List[str], wd: str,
         current_src = current_dest
 
 
-def main(dataset: str = "negated_synonymized",
+def main(dataset: str = "cloze_test",
          translator: Translator = DeepLTranslator(),  # GoogleTranslator(),
          wd: str = os.path.realpath(os.path.join(os.getcwd(), "data")),
          lang_input: str = "en"):
-    fixed_hops = ["ja-JA"]
+    fixed_hops = ["sl-SL"]
     fixed_hops = [[lang
                    for lang in translator.dest_languages
                    if lang.startswith(hop)][0]

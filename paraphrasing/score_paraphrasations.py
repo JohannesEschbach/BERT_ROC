@@ -70,6 +70,7 @@ def score_paraphrasations(dataset: str = "cloze_test",
         else:
             statistics = pd.concat([statistics, this_stats])
         print()
+    statistics = statistics.sort_values("mean")
     print(statistics)
     return statistics
 
