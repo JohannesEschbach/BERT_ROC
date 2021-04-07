@@ -6,8 +6,7 @@
 --------------------
 This repository comprises our finished project done over the course of 4 weeks for the Semantics course at the university of Heidelberg in the winter semester of 2020/2021. The goal was to independently and practically apply the aquired knowledge of model training and testing led by a semantically relevant question for machine learning. The findings are recorded in a paper, which is to be presented. 
 
-* maintainers: students of **Computational Linguistics**: Johannes Eschbach, Kamal Eyuboy, Leon Patzig, Raziye Sari
-* contact: *<first_name>.<last_name>*@stud.uni-heidelberg.de  
+* maintainers: students of **Computational Linguistics**: Johannes Eschbach (j.eschbach@stud.uni-heidelberg.de), Kamal Eyuboy(hu229@stud.uni-heidelberg.de), Leon Patzig (patzig@stud.uni-heidelberg.de), Raziye Sari (sari@cl.uni-heidelberg.de)
 
 
 ⚙ Prerequisites
@@ -20,7 +19,9 @@ This repository comprises our finished project done over the course of 4 weeks f
 
 * **📂 train_and_test**: Contains CleanNotebook.ipynb which loads all needed data & models, trains and tests accordingly
 
-* **📂 datasets**: Contains all needed default datasets of ROC Stories and Cloze training and testing. Automatically or manually created test sets: **negated**, **noise** and **super hard** also included
+* **📂 models**: Contains all 3 needed models
+
+* **📂 datasets**: Contains all needed default datasets of ROC Stories and Cloze training and testing. Automatically or manually created test sets: *negated*, *noise* and *super hard* also included
 
 * **📂 noise**: modifies test set by inducing discourse relation markers as noise in each sentence. Extra test set with endings also induced. 
 
@@ -32,6 +33,10 @@ This repository comprises our finished project done over the course of 4 weeks f
 
 * **📂 salience_mapping**, **📂 weight_changes**: generating of metrices for analysis of findings
 
-* **Models.txt**: Contains Google-drive links to the models     
+* **Appendix.pdf**: Collection of all in the paper referenced weight changes, test results and saliency maps 
 
-* **Appendix.pdf**: Collection of all in the paper referenced weight changes, test results and saliency maps  
+⚛ Usage
+--------------------
+
+Simply run CleanNotebook.ipynb with desired setup and experiment with different test sets.
+
