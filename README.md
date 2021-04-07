@@ -47,5 +47,5 @@ This repository comprises our finished project done over the course of 4 weeks f
 ⚛ Usage
 --------------------
 
-Simply run CleanNotebook.ipynb with desired setup and experiment with different test sets.
+Simply run template.ipynb with desired setup and experiment with different test sets.
 
