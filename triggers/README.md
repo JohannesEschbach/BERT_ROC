@@ -10,6 +10,11 @@ Some additional datasets are:
 * *cloze_test_triggers_synonymized.csv*: Processed *cloze_test.csv* with the trigger words synonymized in the endings.
 The last two datasets are mostly ignored, since only a small amount of rows are different from the original test set, whereas the first three datasets are different from each other at each row.
 
+Preferred order of execution of the notebooks is:
+1. gatherTriggerWords.ipynb (optional)
+2. triggersTruncateSynonymize.ipynb
+3. SaliencyMaps.ipynb or TriggersTest.ipynb in no particular order
+
 
 ⚙ Prerequisites
 --------------------
@@ -25,7 +30,7 @@ The last two datasets are mostly ignored, since only a small amount of rows are 
 
 * **TriggersTest.ipynb**: In this notebook, for each testing configuration, models are tested on *cloze_test_triggers_only.csv*, *cloze_test_triggers_removed_only.csv* and *cloze_test_triggers_synonymized_only.csv*.
 
-* **gatherTriggerWords**: This is the notebook the execution of which corresponds to steps 1 and 2 of the process to find the trigger words described in chapter 6.3. Trigger Words of the paper.
+* **gatherTriggerWords.ipynb**: This is the notebook the execution of which corresponds to steps 1 and 2 of the process to find the trigger words described in chapter 6.3. Trigger Words of the paper.
 
 * **negated_synonymized.csv**: This dataset is a byproduct of the pipeline used to create the hardest test set.
 
