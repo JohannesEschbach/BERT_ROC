@@ -21,9 +21,9 @@ This repository comprises our finished project done over the course of 4 weeks f
 
 * **📂 models**: Contains all 3 needed models
 
-* **📂 datasets**: Contains all needed default datasets of ROC Stories and Cloze training and testing. Automatically or manually created test sets: *negated*, *noise* and *super hard* also included
+* **📂 datasets**: Contains all needed default datasets of ROC Stories and Cloze training and testing. Automatically or manually created test sets: *negated*, *noise*, *super hard*, *triggers*, and *paraphrased* also included
 
-* **📂 noise**: modifies test set by inducing discourse relation markers as noise in each sentence. Extra test set with endings also induced. 
+* **📂 noise**: modifies test set by inducing discourse relation markers as well as temporal and locative adverbials as noise in each sentence. Extra test set with endings also induced. 
 
 * **📂 paraphrasing**: modifies test set by paraphrasing each sentence using deepL, a language translation tool.
 
