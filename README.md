@@ -26,7 +26,7 @@ This repository comprises our finished project done over the course of 4 weeks f
 ☉ Contents
 --------------------
 
-* **📂 train_and_test**: Contains CleanNotebook.ipynb which loads all needed data & models, trains and tests accordingly
+* **📂 train_and_test**: Contains Template.ipynb which loads all needed data & models, trains and tests accordingly
 
 * **📂 models**: Contains all 3 needed models
 
