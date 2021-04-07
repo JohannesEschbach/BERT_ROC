@@ -5,6 +5,7 @@ This module contains the notebooks related to the trigger words described in the
 * *cloze_test_triggers_only.csv*: Contains only the rows from the original Story Cloze test set where either ending contains trigger words.
 * *cloze_test_triggers_removed_only.csv*: Processed *cloze_test_triggers_only.csv* with the trigger words removed from the endings.
 * *cloze_test_triggers_synonymized_only.csv*: Processed *cloze_test_triggers_only.csv* with the trigger words synonymized in the endings.
+
 Some additional datasets are:
 * *cloze_test_triggers_removed.csv*: Processed *cloze_test.csv* with the trigger words removed from the endings.
 * *cloze_test_triggers_synonymized.csv*: Processed *cloze_test.csv* with the trigger words synonymized in the endings.
