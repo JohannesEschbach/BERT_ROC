@@ -28,8 +28,6 @@ The last two data sets are mostly ignored, since only a small amount of rows are
 
 * **gatherTriggerWords.ipynb**: This is the notebook the execution of which corresponds to steps 1 and 2 of the process to find the trigger words described in chapter 6.3. Trigger Words of the paper.
 
-* **negated_synonymized.csv**: This data set is a byproduct of the pipeline used to create the hardest test set.
-
 * **saliencies.html**: The output of *SaliencyMaps.ipynb* was manually gathered here.
 
 * **saliencies.pdf**: PDF version of the previous file.
