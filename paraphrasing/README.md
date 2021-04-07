@@ -25,7 +25,7 @@ This will generate
 - `cloze_test.mixed_paraphrased.csv`, the mixed dataset itself and
 - `cloze_test.mixed_paraphrased.json`, which records the pipeline and score for each phrase of the mixed dataset.
 
-`scores-without-blacklisting` contains the respective records for the mixed dataset before excluding `ja` and `zh`.
+`scores-without-blacklisting/` contains the respective records for the mixed dataset before excluding `ja` and `zh`.
 
 ## Additional tools
 
