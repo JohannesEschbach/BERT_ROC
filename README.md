@@ -12,7 +12,16 @@ This repository comprises our finished project done over the course of 4 weeks f
 ⚙ Prerequisites
 --------------------
  
- * !pip install transformers
+ You can use the `pipenv` tool to install all the python packages required, by simply running
+ ```sh
+ pipenv install --dev
+ ```
+ in this directory, which will prepare a virtual environment with all the requirements needed.
+ You can then run
+ ```sh
+ pipenv shell
+ ```
+ to start a new shell running in this environment.
 
 ☉ Contents
 --------------------
