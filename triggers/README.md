@@ -10,11 +10,6 @@ Some additional datasets are:
 * *cloze_test_triggers_synonymized.csv*: Processed *cloze_test.csv* with the trigger words synonymized in the endings.
 The last two datasets are mostly ignored, since only a small amount of rows are different from the original test set, whereas the first three datasets are different from each other at each row.
 
-Preferred order of execution of the notebooks is:
-1. gatherTriggerWords.ipynb (optional)
-2. triggersTruncateSynonymize.ipynb
-3. SaliencyMaps.ipynb or TriggersTest.ipynb in no particular order
-
 
 ⚙ Prerequisites
 --------------------
@@ -41,3 +36,12 @@ Preferred order of execution of the notebooks is:
 * **triggersTruncateSynonymize.ipynb**: In this notebook, the original Story Cloze test set is processed creating the datasets *cloze_test_triggers_only.csv*, *cloze_test_triggers_removed_only.csv* and *cloze_test_triggers_synonymized_only.csv* as well as *cloze_test_triggers_removed.csv* and *cloze_test_triggers_synonymized.csv* if specified.
 
 * **triggerstruncatesynonymize.ipynb**: This script was used for the pipeline used to create the hardest test set.
+
+⚛ Usage
+--------------------
+
+Preferred order of execution of the notebooks is:
+1. gatherTriggerWords.ipynb (optional)
+2. triggersTruncateSynonymize.ipynb
+3. SaliencyMaps.ipynb or TriggersTest.ipynb in no particular order
+
